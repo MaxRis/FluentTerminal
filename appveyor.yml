@@ -6,16 +6,14 @@ configuration: Release
 platform:
 - x86
 before_build:
-- cmd: pushd . && cd FluentTerminal.Client && npm install && npm run-script build && popd && nuget restore
+- cmd: pushd . && cd FluentTerminal.Client && npm install && npm run-script build && popd && nuget restore FluentTerminal.sln
 after_build:
 - cmd: '7z a FluentTerminal-v%APPVEYOR_BUILD_VERSION%-%APPVEYOR_REPO_COMMIT%.zip FluentTerminal.App\AppPackages\*'
 artifacts:
   - path: 'FluentTerminal-v%APPVEYOR_BUILD_VERSION%-${APPVEYOR_REPO_COMMIT}.zip'
     name: AppPackage
 build:
-  project: FluentTerminal.sln
-  parallel: true
-  verbosity: minimal
+- cmd: msbuild.exe /maxcpucount /t:Build /p:Configuration=Release /p:AppxBundle=Always /p:Platform=x86 /v:q /nologo FluentTerminal.sln
 test_script:
   - echo Skipt tests run
 deploy:
