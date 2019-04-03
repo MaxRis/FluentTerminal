@@ -5,12 +5,6 @@ os: Visual Studio 2017
 configuration: Release
 platform:
 - x86
-assembly_info:
-  patch: true
-  file: 'FluentTerminal.App\Properties\AssemblyInfo.*'
-  assembly_version: "1.0.{build}"
-  assembly_file_version: "{version}"
-  assembly_informational_version: "{version}"
 before_build:
 - cmd: pushd . && cd FluentTerminal.Client && npm install && npm run-script build && popd && nuget restore
 after_build:
