@@ -14,9 +14,25 @@ assembly_info:
   assembly_informational_version: '{version}'
 before_build:
 - cmd: pushd . && cd FluentTerminal.Client && npm install && npm run-script build && popd && nuget restore
+after_build:
+- cmd: 7z a FluentTerminal-v${version}-${APPVEYOR_REPO_COMMIT}.zip FluentTerminal.App\AppPackages\*
+artifacts:
+  - path: FluentTerminal-v${version}-${APPVEYOR_REPO_COMMIT}.zip
+    name: AppPackage
 build:
   project: FluentTerminal.sln
   parallel: true
   verbosity: minimal
 test_script:
   - echo Skipt tests run
+deploy:
+  release: FluentTerminal-v${version}-${APPVEYOR_REPO_COMMIT}
+  description: 'Build ${APPVEYOR_REPO_COMMIT} for appveyor-ci-support branch'
+  provider: GitHub
+  auth_token:
+    secure: rwuDF3ROrdEzxJ9HaT/aedOWRuiDPDp6T5a7WmdGBl54bm4d5z9S2L6SLMYD9WRo
+  draft: false
+  prerelease: false
+  on:
+    branch: appveyor-ci-support
+    APPVEYOR_REPO_TAG: false
