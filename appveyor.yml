@@ -4,7 +4,7 @@ pull_requests:
 os: Visual Studio 2017
 configuration: Release
 platform:
-- x86
+- x64
 before_build:
 - cmd: pushd . && cd FluentTerminal.Client && npm install && npm run-script build && popd && nuget restore FluentTerminal.sln
 after_build:
@@ -13,7 +13,7 @@ artifacts:
   - path: 'FluentTerminal-v%APPVEYOR_BUILD_VERSION%-${APPVEYOR_REPO_COMMIT}.zip'
     name: AppPackage
 build_script:
-  - msbuild /maxcpucount:%NUMBER_OF_PROCESSORS% /t:Build /p:Configuration=Release /p:AppxBundle=Always /p:Platform=x86 /v:q /nologo FluentTerminal.sln
+  - msbuild /maxcpucount:%NUMBER_OF_PROCESSORS% /t:Build /p:Configuration=Release /p:AppxBundle=Always /p:Platform="x86|x64" /v:q /nologo FluentTerminal.sln
 test_script:
   - echo Skipt tests run
 deploy:
