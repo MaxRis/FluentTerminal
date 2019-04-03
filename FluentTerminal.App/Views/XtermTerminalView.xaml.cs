@@ -129,14 +129,14 @@ namespace FluentTerminal.App.Views
             var settings = ViewModel.SettingsService.GetApplicationSettings();
             var theme = ViewModel.TerminalTheme;
             var sessionType = SessionType.Unknown;
-            /*if (settings.AlwaysUseWinPty || !ViewModel.ApplicationView.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+            if (settings.AlwaysUseWinPty || !ViewModel.ApplicationView.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
             {
                 sessionType = SessionType.WinPty;
             }
             else
-            {*/
+            {
                 sessionType = SessionType.ConPty;
-            //}
+            }
             await _navigationCompleted.WaitAsync().ConfigureAwait(true);
             var size = await CreateXtermView(options, theme.Colors, FlattenKeyBindings(keyBindings, profiles), sessionType).ConfigureAwait(true);
             var port = await ViewModel.TrayProcessCommunicationService.GetAvailablePort().ConfigureAwait(true);
