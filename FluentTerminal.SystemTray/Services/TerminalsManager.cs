@@ -62,7 +62,7 @@ namespace FluentTerminal.SystemTray.Services
                 }
                 terminal.Start(request, this);
             }
-            catch (Exception e)
+            catch (Exception e) // Oops
             {
                 return new CreateTerminalResponse { Error = e.ToString() };
             }
