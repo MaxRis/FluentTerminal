@@ -125,6 +125,12 @@ namespace FluentTerminal.App.Views
             return ExecuteScriptAsync($"changeTheme('{serialized}')");
         }
 
+        public async Task Serialize()
+        {
+            var serializedTerm = await ExecuteScriptAsync(@"serializeTerminal()");
+            return;
+        }
+
         public Task FindNext(string searchText)
         {
             return ExecuteScriptAsync($"findNext('{searchText}')");

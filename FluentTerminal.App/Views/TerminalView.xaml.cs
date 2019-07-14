@@ -19,6 +19,7 @@ namespace FluentTerminal.App.Views
             ViewModel.OptionsChanged += OnOptionsChanged;
             ViewModel.KeyBindingsChanged += OnKeyBindingsChanged;
             ViewModel.FindNextRequested += OnFindNextRequested;
+            ViewModel.SerializeRequested += OnSerializeRequested;
             ViewModel.FindPreviousRequested += OnFindPreviousRequested;
             InitializeComponent();
             _terminalView = new XtermTerminalView();
@@ -39,6 +40,11 @@ namespace FluentTerminal.App.Views
         private async void OnFindNextRequested(object sender, string e)
         {
             await _terminalView.FindNext(e).ConfigureAwait(true);
+        }
+
+        private async void OnSerializeRequested(object sender, EventArgs e)
+        {
+            await _terminalView.Serialize().ConfigureAwait(true);
         }
 
         private async void OnFindPreviousRequested(object sender, string e)

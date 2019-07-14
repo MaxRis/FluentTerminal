@@ -63,6 +63,7 @@ namespace FluentTerminal.App.ViewModels
 
             CloseCommand = new RelayCommand(async () => await TryClose().ConfigureAwait(false));
             FindNextCommand = new RelayCommand(FindNext);
+            SerializeCommand = new RelayCommand(Serialize);
             FindPreviousCommand = new RelayCommand(FindPrevious);
             CloseSearchPanelCommand = new RelayCommand(CloseSearchPanel);
             SelectTabThemeCommand = new RelayCommand<string>(SelectTabTheme);
@@ -83,6 +84,7 @@ namespace FluentTerminal.App.ViewModels
         public event EventHandler Activated;
         public event EventHandler Closed;
         public event EventHandler<string> FindNextRequested;
+        public event EventHandler SerializeRequested;
         public event EventHandler<string> FindPreviousRequested;
         public event EventHandler KeyBindingsChanged;
         public event EventHandler<TerminalOptions> OptionsChanged;
@@ -117,6 +119,8 @@ namespace FluentTerminal.App.ViewModels
         public RelayCommand FindNextCommand { get; }
 
         public RelayCommand FindPreviousCommand { get; }
+
+        public RelayCommand SerializeCommand { get; }
 
         public bool IsSelected
         {
@@ -291,6 +295,11 @@ namespace FluentTerminal.App.ViewModels
         private void FindNext()
         {
             FindNextRequested?.Invoke(this, SearchText);
+        }
+
+        private void Serialize()
+        {
+            SerializeRequested?.Invoke(this, EventArgs.Empty);
         }
 
         private void FindPrevious()

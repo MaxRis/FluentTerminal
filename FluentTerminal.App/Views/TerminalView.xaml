@@ -23,6 +23,20 @@
         <RelativePanel
             Grid.Row="1"
             Padding="12"
+            Visibility="Visible">
+            <Button
+                Command="{x:Bind ViewModel.SerializeCommand}"
+                RelativePanel.AlignHorizontalCenterWithPanel="True"
+                ToolTipService.ToolTip="Serialize">
+                <Button.Content>
+                    Serialize
+                </Button.Content>
+            </Button>
+        </RelativePanel>
+
+        <RelativePanel
+            Grid.Row="1"
+            Padding="12"
             Visibility="{x:Bind ViewModel.ShowSearchPanel, Mode=OneWay, Converter={StaticResource TrueToVisibleConverter}}">
             <TextBlock
                 Name="SearchLabel"
