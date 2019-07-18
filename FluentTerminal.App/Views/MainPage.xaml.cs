@@ -64,9 +64,9 @@ namespace FluentTerminal.App.Views
 
         private void OnWindowActivated(object sender, WindowActivatedEventArgs e)
         {
-            if (e.WindowActivationState != CoreWindowActivationState.Deactivated && TerminalContainer.Content is TerminalView terminal)
+            if (e.WindowActivationState != CoreWindowActivationState.Deactivated /*&& TerminalContainer.Content is TerminalView terminal*/)
             {
-                terminal.ViewModel.FocusTerminal();
+                //terminal.ViewModel.FocusTerminal();
                 ViewModel.FocusWindow();
             }
         }
