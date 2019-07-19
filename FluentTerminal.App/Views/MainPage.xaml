@@ -161,11 +161,13 @@
                 CanDragItems="True"
                 CanReorderItems="True"
                 AllowDrop="True"
-                VerticalAlignment="Stretch"
                 
                 Grid.Column="1"
                 ItemsSource="{x:Bind ViewModel.Terminals, Mode=OneWay}"
                 SelectedItem="{x:Bind ViewModel.SelectedTerminal, Mode=TwoWay}"
+                
+                TabDraggedOutside="TabView_TabDraggedOutside"
+                
                 >
 
                 <controls:TabView.Resources>

@@ -7,6 +7,7 @@
         ShowSshProfileSelection,
         ShowSshInfoDialog,
         StartLocalTerminal,
-        StartSshTerminal
+        StartSshTerminal,
+        TearOffTerminalTab
     }
 }

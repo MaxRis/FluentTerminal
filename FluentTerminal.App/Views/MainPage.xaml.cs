@@ -1,5 +1,6 @@
 ﻿using FluentTerminal.App.Utilities;
 using FluentTerminal.App.ViewModels;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using Windows.ApplicationModel.Core;
@@ -93,6 +94,23 @@ namespace FluentTerminal.App.Views
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(nameof(CoreTitleBarHeight)));
                 PropertyChanged(this, new PropertyChangedEventArgs(nameof(CoreTitleBarPadding)));
+            }
+        }
+
+        private async void TabView_TabDraggedOutside(object sender, Microsoft.Toolkit.Uwp.UI.Controls.TabDraggedOutsideEventArgs e)
+        {
+            if (e.Item is TerminalViewModel model)
+            {
+                ViewModel.TearOffTab(model);
+
+                /*string serializedModel = JsonConvert.SerializeObject(model);
+
+                var viewModel = await CreateNewTerminalWindow().ConfigureAwait(true);
+
+                if (profile == null)
+                {
+                    await viewModel.AddLocalTabAsync();
+                }*/
             }
         }
     }

@@ -457,6 +457,7 @@ namespace FluentTerminal.App
                     mainViewModel.ShowSettingsRequested += OnShowSettingsRequested;
                     mainViewModel.ShowAboutRequested += OnShowAboutRequested;
                     mainViewModel.ActivatedMv += OnMainViewActivated;
+                    mainViewModel.TabTearedOff += OnTabTearOff;
                     _mainViewModels.Add(mainViewModel);
                 }
 
@@ -474,6 +475,7 @@ namespace FluentTerminal.App
             viewModel.ShowSettingsRequested += OnShowSettingsRequested;
             viewModel.ShowAboutRequested += OnShowAboutRequested;
             viewModel.ActivatedMv += OnMainViewActivated;
+            viewModel.TabTearedOff += OnTabTearOff;
             _mainViewModels.Add(viewModel);
 
             return viewModel;
@@ -524,6 +526,7 @@ namespace FluentTerminal.App
                 viewModel.ShowSettingsRequested -= OnShowSettingsRequested;
                 viewModel.ShowAboutRequested -= OnShowAboutRequested;
                 viewModel.ActivatedMv -= OnMainViewActivated;
+                viewModel.TabTearedOff -= OnTabTearOff;
                 if (_activeWindowId == viewModel.ApplicationView.Id)
                 {
                     _activeWindowId = 0;
@@ -539,6 +542,24 @@ namespace FluentTerminal.App
             {
                 Logger.Instance.Debug("MainViewModel with ApplicationView Id: {@id} activated.", viewModel.ApplicationView.Id);
                 _activeWindowId = viewModel.ApplicationView.Id;
+            }
+        }
+
+        private async void OnTabTearOff(object sender, TerminalViewModel model)
+        {
+            if (sender is MainViewModel viewModel)
+            {
+                Logger.Instance.Debug("MainViewModel tab tear off.");
+
+                var newViewModel = await CreateNewTerminalWindow().ConfigureAwait(true);
+                //newViewModel.Terminals.Add(model);
+
+                //await newViewModel.AddLocalTabAsync();
+                //string serializedModel = JsonConvert.SerializeObject(model, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
+                //await newViewModel.AddTerminalViewAsync(serializedModel);
+                await newViewModel.AddTerminalAsync(model.ShellProfile.Clone());
+
+                viewModel.Terminals.Remove(model);
             }
         }
 

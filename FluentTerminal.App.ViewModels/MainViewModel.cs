@@ -5,6 +5,7 @@ using FluentTerminal.Models;
 using FluentTerminal.Models.Enums;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -140,6 +141,13 @@ namespace FluentTerminal.App.ViewModels
         public event EventHandler ShowAboutRequested;
 
         public event EventHandler ActivatedMv;
+
+        public event EventHandler<TerminalViewModel> TabTearedOff;
+
+        public void TearOffTab(TerminalViewModel model)
+        {
+            TabTearedOff?.Invoke(this, model);
+        }
 
         public void FocusWindow()
         {
@@ -311,6 +319,21 @@ namespace FluentTerminal.App.ViewModels
                 default:
                     throw new ArgumentException("unknown NewTerminalLocation");
             }
+        }
+
+        public Task AddTerminalViewAsync(string terminalViewStr)
+        {
+            return ApplicationView.RunOnDispatcherThread(() =>
+            {
+                var terminal = JsonConvert.DeserializeObject<TerminalViewModel>(terminalViewStr, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
+
+                /*terminal.Closed += OnTerminalClosed;
+                terminal.ShellTitleChanged += Terminal_ShellTitleChanged;
+                terminal.CustomTitleChanged += Terminal_CustomTitleChanged;*/
+                Terminals.Add(terminal);
+
+                SelectedTerminal = terminal;
+            });
         }
 
         public Task AddTerminalAsync(ShellProfile profile)
