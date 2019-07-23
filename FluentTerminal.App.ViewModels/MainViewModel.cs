@@ -352,6 +352,22 @@ namespace FluentTerminal.App.ViewModels
             });
         }
 
+        public Task AddTerminalAsync(byte terminalId, ShellProfile profile, string xtermState)
+        {
+            return ApplicationView.RunOnDispatcherThread(() =>
+            {
+                var terminal = new TerminalViewModel(_settingsService, _trayProcessCommunicationService, _dialogService, _keyboardCommandService,
+                    _applicationSettings, profile, ApplicationView, _dispatcherTimer, _clipboardService, terminalId, xtermState);
+
+                terminal.Closed += OnTerminalClosed;
+                terminal.ShellTitleChanged += Terminal_ShellTitleChanged;
+                terminal.CustomTitleChanged += Terminal_CustomTitleChanged;
+                Terminals.Add(terminal);
+
+                SelectedTerminal = terminal;
+            });
+        }
+
         private void Terminal_CustomTitleChanged(object sender, string e)
         {
             if (sender is TerminalViewModel terminal)

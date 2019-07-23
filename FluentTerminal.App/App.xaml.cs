@@ -557,7 +557,9 @@ namespace FluentTerminal.App
                 //await newViewModel.AddLocalTabAsync();
                 //string serializedModel = JsonConvert.SerializeObject(model, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
                 //await newViewModel.AddTerminalViewAsync(serializedModel);
-                await newViewModel.AddTerminalAsync(model.ShellProfile.Clone());
+                model.Serialize();
+                await Task.Delay(100);
+                await newViewModel.AddTerminalAsync(model.Terminal.Id, model.ShellProfile.Clone(), model.SerializedTerminalState);
 
                 viewModel.Terminals.Remove(model);
             }

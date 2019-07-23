@@ -37,7 +37,7 @@ namespace FluentTerminal.App.ViewModels
 
         public TerminalViewModel(ISettingsService settingsService, ITrayProcessCommunicationService trayProcessCommunicationService, IDialogService dialogService,
             IKeyboardCommandService keyboardCommandService, ApplicationSettings applicationSettings, ShellProfile shellProfile,
-            IApplicationView applicationView, IDispatcherTimer dispatcherTimer, IClipboardService clipboardService)
+            IApplicationView applicationView, IDispatcherTimer dispatcherTimer, IClipboardService clipboardService, byte? terminalId = null, string xtermState = "")
         {
             SettingsService = settingsService;
             SettingsService.CurrentThemeChanged += OnCurrentThemeChanged;
@@ -55,6 +55,8 @@ namespace FluentTerminal.App.ViewModels
             ApplicationView = applicationView;
             ClipboardService = clipboardService;
 
+            SerializedTerminalState = xtermState;
+
             ShellProfile = shellProfile;
             TerminalTheme = shellProfile.TerminalThemeId == Guid.Empty ? SettingsService.GetCurrentTheme() : SettingsService.GetTheme(shellProfile.TerminalThemeId);
 
@@ -69,7 +71,7 @@ namespace FluentTerminal.App.ViewModels
             SelectTabThemeCommand = new RelayCommand<string>(SelectTabTheme);
             EditTitleCommand = new AsyncCommand(EditTitle);
 
-            Terminal = new Terminal(TrayProcessCommunicationService);
+            Terminal = new Terminal(TrayProcessCommunicationService, terminalId);
             Terminal.KeyboardCommandReceived += Terminal_KeyboardCommandReceived;
             Terminal.OutputReceived += Terminal_OutputReceived;
             Terminal.SizeChanged += Terminal_SizeChanged;
@@ -248,6 +250,8 @@ namespace FluentTerminal.App.ViewModels
 
         public ITrayProcessCommunicationService TrayProcessCommunicationService { get; }
 
+        public string SerializedTerminalState { get; set; }
+
         public Task Close()
         {
             SettingsService.CurrentThemeChanged -= OnCurrentThemeChanged;
@@ -297,7 +301,7 @@ namespace FluentTerminal.App.ViewModels
             FindNextRequested?.Invoke(this, SearchText);
         }
 
-        private void Serialize()
+        public void Serialize()
         {
             SerializeRequested?.Invoke(this, EventArgs.Empty);
         }

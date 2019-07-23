@@ -13,6 +13,6 @@ namespace FluentTerminal.App.Views
         Task FindNext(string searchText);
         Task FindPrevious(string searchText);
         Task FocusTerminal();
-        Task Serialize();
+        Task<string> Serialize();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FluentTerminal.App.ViewModels;
 using System;
+using System.Text.RegularExpressions;
 using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -42,9 +43,12 @@ namespace FluentTerminal.App.Views
             await _terminalView.FindNext(e).ConfigureAwait(true);
         }
 
+        private static readonly Regex RTrimMultiLinesPattern = new Regex(@"([^\S\r\n]+)([\r\n])", RegexOptions.Compiled);
+
         private async void OnSerializeRequested(object sender, EventArgs e)
         {
-            await _terminalView.Serialize().ConfigureAwait(true);
+            ViewModel.SerializedTerminalState = await _terminalView.Serialize().ConfigureAwait(true);
+            //ViewModel.SerializedTerminalState = RTrimMultiLinesPattern.Replace(ViewModel.SerializedTerminalState, "$2");
         }
 
         private async void OnFindPreviousRequested(object sender, string e)

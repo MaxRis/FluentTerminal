@@ -4,10 +4,13 @@ using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using Windows.ApplicationModel.Core;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace FluentTerminal.App.Views
@@ -53,6 +56,11 @@ namespace FluentTerminal.App.Views
             });
 
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
+
+            tabViewObject.Resources["TabViewItemHeaderMinWidth"] = 500;
+            tabViewObject.Resources["TabViewItemHeaderMaxWidth"] = 500;
+            tabViewObject.Resources["TabViewItemHeaderBackgroundSelected"] = new SolidColorBrush(Colors.Green);
+            
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -112,6 +120,26 @@ namespace FluentTerminal.App.Views
                     await viewModel.AddLocalTabAsync();
                 }*/
             }
+        }
+
+        private void TabView_DragOver(object sender, DragEventArgs e)
+        {
+            e.AcceptedOperation = DataPackageOperation.Move;
+        }
+
+        private void TabView_Drop(object sender, DragEventArgs e)
+        {
+            ViewModel.AddLocalTabAsync();
+        }
+
+        private void TabView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+        {
+
+        }
+
+        private void TabView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+        {
+
         }
     }
 }

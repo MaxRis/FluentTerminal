@@ -5,6 +5,10 @@
 
 import { Terminal, ITerminalAddon } from 'xterm';
 
+function crop(value: number, from: number, to: number): number {
+  return Math.max(from, Math.min(value, to));
+}
+
 export class SerializeAddon implements ITerminalAddon {
   private _terminal: Terminal | undefined;
 
@@ -15,28 +19,26 @@ export class SerializeAddon implements ITerminalAddon {
   }
 
   public serialize(rows?: number): string {
+    // TODO: Add frontground/background color support later
     if (!this._terminal) {
-      return '';
+      throw new Error('Cannot use addon until it has been loaded');
     }
+    const terminalRows = this._terminal.buffer.viewportY + this._terminal.buffer.cursorY + 1;
+    if (rows === undefined) {
+      rows = terminalRows;
+    }
+    rows = crop(rows, 0, terminalRows);
+
     const buffer = this._terminal.buffer;
-    const length = Math.max(0, Math.min((rows === undefined ? buffer.length : rows), buffer.length));
-    let data = '';
+    const lines: string[] = new Array<string>(rows);
 
-    for (let i = 0; i < length; i++) {
+    for (let i = terminalRows - rows; i < terminalRows; i++) {
       const line = buffer.getLine(i);
-      const last = i === length - 1;
-      if (line) {
-        data += line.translateToString();
-      }
-      if (!last) {
-        data += '\r\n';
-      }
+      lines[i - terminalRows + rows] = line ? line.translateToString(true) : '';
     }
 
-    return data;
+    return lines.join('\r\n');
   }
 
-  public dispose(): void {
-    if (this._terminal !== undefined) { }
-  }
+  public dispose(): void { }
 }
