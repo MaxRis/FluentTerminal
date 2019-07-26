@@ -5,6 +5,7 @@ using FluentTerminal.Models;
 using FluentTerminal.Models.Enums;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -140,6 +141,13 @@ namespace FluentTerminal.App.ViewModels
         public event EventHandler ShowAboutRequested;
 
         public event EventHandler ActivatedMv;
+
+        public event EventHandler<TerminalViewModel> TabTearedOff;
+
+        public void TearOffTab(TerminalViewModel model)
+        {
+            TabTearedOff?.Invoke(this, model);
+        }
 
         public void FocusWindow()
         {
@@ -313,12 +321,53 @@ namespace FluentTerminal.App.ViewModels
             }
         }
 
+        public Task AddTerminalViewAsync(string terminalViewStr)
+        {
+            return ApplicationView.RunOnDispatcherThread(() =>
+            {
+                var terminal = JsonConvert.DeserializeObject<TerminalViewModel>(terminalViewStr, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
+
+                /*terminal.Closed += OnTerminalClosed;
+                terminal.ShellTitleChanged += Terminal_ShellTitleChanged;
+                terminal.CustomTitleChanged += Terminal_CustomTitleChanged;*/
+                Terminals.Add(terminal);
+
+                SelectedTerminal = terminal;
+            });
+        }
+
         public Task AddTerminalAsync(ShellProfile profile)
         {
             return ApplicationView.RunOnDispatcherThread(() =>
             {
                 var terminal = new TerminalViewModel(_settingsService, _trayProcessCommunicationService, _dialogService, _keyboardCommandService,
                     _applicationSettings, profile, ApplicationView, _dispatcherTimer, _clipboardService);
+
+                terminal.Closed += OnTerminalClosed;
+                terminal.ShellTitleChanged += Terminal_ShellTitleChanged;
+                terminal.CustomTitleChanged += Terminal_CustomTitleChanged;
+                Terminals.Add(terminal);
+
+                SelectedTerminal = terminal;
+            });
+        }
+
+        public Task AddTerminalAsync(byte terminalId, ShellProfile profile, string xtermState, TerminalViewModel model = null)
+        {
+            return ApplicationView.RunOnDispatcherThread(() =>
+            {
+                var terminal = new TerminalViewModel(_settingsService, _trayProcessCommunicationService, _dialogService, _keyboardCommandService,
+                    _applicationSettings, profile, ApplicationView, _dispatcherTimer, _clipboardService, terminalId, xtermState);
+
+                if (model != null)
+                {
+                    terminal.TabTheme = model.TabTheme;
+                    terminal.TabTitle = model.TabTitle;
+                    terminal.TerminalTheme = model.TerminalTheme;
+                    terminal.ShellTitle = model.ShellTitle;
+                    terminal.ShowSearchPanel = model.ShowSearchPanel;
+                    terminal.SearchText = model.SearchText;
+                }
 
                 terminal.Closed += OnTerminalClosed;
                 terminal.ShellTitleChanged += Terminal_ShellTitleChanged;

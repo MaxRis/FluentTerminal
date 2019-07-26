@@ -1,5 +1,6 @@
 ﻿using FluentTerminal.App.ViewModels;
 using System;
+using System.Text.RegularExpressions;
 using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -24,6 +25,7 @@ namespace FluentTerminal.App.Views
             _terminalView = new XtermTerminalView();
             TerminalContainer.Children.Add((UIElement)_terminalView);
             _terminalView.Initialize(ViewModel);
+            ViewModel.TerminalView = _terminalView;
         }
 
         public TerminalViewModel ViewModel { get; }
@@ -40,6 +42,8 @@ namespace FluentTerminal.App.Views
         {
             await _terminalView.FindNext(e).ConfigureAwait(true);
         }
+
+        private static readonly Regex RTrimMultiLinesPattern = new Regex(@"([^\S\r\n]+)([\r\n])", RegexOptions.Compiled);
 
         private async void OnFindPreviousRequested(object sender, string e)
         {
@@ -76,6 +80,16 @@ namespace FluentTerminal.App.Views
         private async void OnThemeChanged(object sender, Models.TerminalTheme e)
         {
             await _terminalView.ChangeTheme(e).ConfigureAwait(true);
+        }
+
+        private void Grid_Drop(object sender, DragEventArgs e)
+        {
+
+        }
+
+        private void Grid_DropCompleted(UIElement sender, DropCompletedEventArgs args)
+        {
+
         }
     }
 }

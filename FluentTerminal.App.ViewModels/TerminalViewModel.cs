@@ -5,6 +5,7 @@ using FluentTerminal.Models;
 using FluentTerminal.Models.Enums;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -35,9 +36,11 @@ namespace FluentTerminal.App.ViewModels
         private string _shellTitle;
         private bool _hasCustomTitle;
 
+        public TerminalViewModel() { }
+
         public TerminalViewModel(ISettingsService settingsService, ITrayProcessCommunicationService trayProcessCommunicationService, IDialogService dialogService,
             IKeyboardCommandService keyboardCommandService, ApplicationSettings applicationSettings, ShellProfile shellProfile,
-            IApplicationView applicationView, IDispatcherTimer dispatcherTimer, IClipboardService clipboardService)
+            IApplicationView applicationView, IDispatcherTimer dispatcherTimer, IClipboardService clipboardService, byte? terminalId = null, string xtermState = "")
         {
             SettingsService = settingsService;
             SettingsService.CurrentThemeChanged += OnCurrentThemeChanged;
@@ -55,6 +58,8 @@ namespace FluentTerminal.App.ViewModels
             ApplicationView = applicationView;
             ClipboardService = clipboardService;
 
+            SerializedTerminalState = xtermState;
+
             ShellProfile = shellProfile;
             TerminalTheme = shellProfile.TerminalThemeId == Guid.Empty ? SettingsService.GetCurrentTheme() : SettingsService.GetTheme(shellProfile.TerminalThemeId);
 
@@ -68,7 +73,7 @@ namespace FluentTerminal.App.ViewModels
             SelectTabThemeCommand = new RelayCommand<string>(SelectTabTheme);
             EditTitleCommand = new AsyncCommand(EditTitle);
 
-            Terminal = new Terminal(TrayProcessCommunicationService);
+            Terminal = new Terminal(TrayProcessCommunicationService, terminalId);
             Terminal.KeyboardCommandReceived += Terminal_KeyboardCommandReceived;
             Terminal.OutputReceived += Terminal_OutputReceived;
             Terminal.SizeChanged += Terminal_SizeChanged;
@@ -93,8 +98,10 @@ namespace FluentTerminal.App.ViewModels
 
         public ApplicationSettings ApplicationSettings { get; private set; }
 
+        [JsonIgnore]
         public IApplicationView ApplicationView { get; }
 
+        [JsonIgnore]
         public TabTheme BackgroundTabTheme
         {
             // The effective background theme depends on whether it is selected (use the theme), or if it is inactive
@@ -104,18 +111,27 @@ namespace FluentTerminal.App.ViewModels
                 SettingsService.GetTabThemes().FirstOrDefault(t => t.Color == null);
         }
 
+        [JsonIgnore]
         public IClipboardService ClipboardService { get; }
 
+        public string SerializedTerminalState { get; private set; }
+
+        [JsonIgnore]
         public RelayCommand CloseCommand { get; }
 
+        [JsonIgnore]
         public RelayCommand CloseSearchPanelCommand { get; }
 
+        [JsonIgnore]
         public IDialogService DialogService { get; }
 
+        [JsonIgnore]
         public IAsyncCommand EditTitleCommand { get; }
 
+        [JsonIgnore]
         public RelayCommand FindNextCommand { get; }
 
+        [JsonIgnore]
         public RelayCommand FindPreviousCommand { get; }
 
         public bool IsSelected
@@ -162,8 +178,10 @@ namespace FluentTerminal.App.ViewModels
             set => Set(ref _searchText, value);
         }
 
+        [JsonIgnore]
         public RelayCommand<string> SelectTabThemeCommand { get; }
 
+        [JsonIgnore]
         public ISettingsService SettingsService { get; }
 
         public ShellProfile ShellProfile { get; }
@@ -187,6 +205,7 @@ namespace FluentTerminal.App.ViewModels
 
         public ObservableCollection<TabTheme> TabThemes { get; }
 
+        [JsonIgnore]
         public Terminal Terminal { get; private set; }
 
         public OverlayViewModel Overlay { get; private set; }
@@ -242,6 +261,7 @@ namespace FluentTerminal.App.ViewModels
             }
         }
 
+        [JsonIgnore]
         public ITrayProcessCommunicationService TrayProcessCommunicationService { get; }
 
         public Task Close()
@@ -291,6 +311,14 @@ namespace FluentTerminal.App.ViewModels
         private void FindNext()
         {
             FindNextRequested?.Invoke(this, SearchText);
+        }
+
+        [JsonIgnore]
+        public ITerminalView TerminalView { get; set; }
+
+        public async Task<string> Serialize()
+        {
+            return await TerminalView?.Serialize();
         }
 
         private void FindPrevious()

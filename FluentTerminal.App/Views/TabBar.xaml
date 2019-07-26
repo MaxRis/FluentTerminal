@@ -47,10 +47,20 @@
                 x:Name="ListView"
                 AllowDrop="True"
                 Background="Transparent"
-                CanDragItems="True"
+                CanDrag="True"
+                SelectionMode="Single"
+                CanDragItems="true"
                 CanReorderItems="True"
                 ItemsSource="{x:Bind ItemsSource}"
-                SelectedItem="{x:Bind SelectedItem, Mode=TwoWay}">
+                SelectedItem="{x:Bind SelectedItem, Mode=TwoWay}"
+                DragEnter="ListView_DragEnter"
+                DragOver="ListView_DragOver"
+                DragLeave="ListView_DragLeave"
+                DragItemsStarting="ListView_DragItemsStarting"
+                DragItemsCompleted="ListView_DragItemsCompleted"
+                DropCompleted="ListView_DropCompleted"
+                Drop="ListView_Drop"
+                >
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="viewmodels:TerminalViewModel">
                         <RelativePanel
@@ -225,7 +235,7 @@
                 </ListView.Template>
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
-                        <Setter Property="MinWidth" Value="100" />
+                        <Setter Property="MinWidth" Value="200" />
                         <Setter Property="MaxWidth" Value="200" />
                         <Setter Property="MinHeight" Value="32" />
                         <Setter Property="Padding" Value="0" />
@@ -237,7 +247,7 @@
                         <Setter Property="Foreground" Value="{ThemeResource ListViewItemForeground}" />
                         <Setter Property="TabNavigation" Value="Local" />
                         <Setter Property="IsHoldingEnabled" Value="True" />
-                        <Setter Property="AllowDrop" Value="False" />
+                        <Setter Property="AllowDrop" Value="True" />
                         <Setter Property="UseSystemFocusVisuals" Value="True" />
                         <Setter Property="FocusVisualMargin" Value="0" />
                         <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource ListViewItemFocusVisualPrimaryBrush}" />

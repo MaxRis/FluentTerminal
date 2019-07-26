@@ -100,6 +100,18 @@ namespace FluentTerminal.SystemTray.Services
             }
         }
 
+        public PauseTerminalOutputResponse PauseTermimal(byte id, bool pause)
+        {
+            var response = new PauseTerminalOutputResponse();
+            if (_terminals.TryGetValue(id, out ITerminalSession terminal))
+            {
+                terminal.Pause(pause);
+                response.Success = true;
+                response.ShellExecutableName = terminal.ShellExecutableName;
+            }
+            return response;
+        }
+
         public string GetDefaultEnvironmentVariableString(Dictionary<string, string> additionalVariables)
         {
             var environmentVariables = Environment.GetEnvironmentVariables();
