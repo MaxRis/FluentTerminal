@@ -23,7 +23,7 @@ export class SerializeAddon implements ITerminalAddon {
     if (!this._terminal) {
       throw new Error('Cannot use addon until it has been loaded');
     }
-    const terminalRows = this._terminal.buffer.viewportY + this._terminal.buffer.cursorY + 1;
+    const terminalRows = this._terminal.buffer.baseY + this._terminal.buffer.cursorY + 1;
     if (rows === undefined) {
       rows = terminalRows;
     }
