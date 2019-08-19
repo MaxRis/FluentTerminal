@@ -1,4 +1,5 @@
 ﻿using Fleck;
+using FluentTerminal.App.Converters;
 using FluentTerminal.App.Services;
 using FluentTerminal.App.Services.Utilities;
 using FluentTerminal.App.Utilities;
@@ -389,6 +390,14 @@ namespace FluentTerminal.App.Views
                 ViewModel.Terminal.Closed -= Terminal_Closed;
                 _webView?.Navigate(new Uri("about:blank"));
                 _webView = null;
+
+                if (Window.Current.Content is Frame frame && frame.Content is Page mainPage)
+                {
+                    if (mainPage.Resources["TerminalViewModelToViewConverter"] is TerminalViewModelToViewConverter converter)
+                    {
+                        converter.RemoveTerminal(ViewModel);
+                    }
+                }
             });
         }
 

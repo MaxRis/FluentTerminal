@@ -15,6 +15,11 @@ namespace FluentTerminal.App.Converters
             _viewDictionary = new Dictionary<TerminalViewModel, TerminalView>();
         }
 
+        public void RemoveTerminal(TerminalViewModel viewModel)
+        {
+            _viewDictionary.Remove(viewModel);
+        }
+
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value is TerminalViewModel terminal)
