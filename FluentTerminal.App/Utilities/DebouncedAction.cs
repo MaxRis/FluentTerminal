@@ -30,20 +30,23 @@ namespace FluentTerminal.App.Utilities
             {
                 Interval = _interval
             };
-            timer.Tick += (s, e) =>
-            {
-                if (timer == null)
-                {
-                    return;
-                }
-
-                timer?.Stop();
-                timer = null;
-
-                _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => _action.Invoke(_parameter));
-            };
+            timer.Tick += Timer_Tick;
 
             timer.Start();
+        }
+
+        private async void Timer_Tick(object sender, object e)
+        {
+            if (timer == null)
+            {
+                return;
+            }
+
+            timer?.Stop();
+            timer.Tick -= Timer_Tick;
+            timer = null;
+
+            await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => _action.Invoke(_parameter));
         }
     }
 }

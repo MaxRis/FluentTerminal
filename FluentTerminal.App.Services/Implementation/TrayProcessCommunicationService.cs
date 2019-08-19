@@ -14,7 +14,7 @@ namespace FluentTerminal.App.Services.Implementation
     {
         private readonly ISettingsService _settingsService;
         private IAppServiceConnection _appServiceConnection;
-        private readonly Dictionary<byte, Action<byte[]>> _terminalOutputHandlers;
+            private readonly Dictionary<byte, Action<byte[]>> _terminalOutputHandlers;
         private byte _nextTerminalId = 0;
 
         public event EventHandler<TerminalExitStatus> TerminalExited;

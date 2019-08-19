@@ -102,6 +102,8 @@ namespace FluentTerminal.App.Adapters
                 SystemNavigationManagerPreview.GetForCurrentView().CloseRequested -= OnCloseRequest;
             }
 
+            _applicationView.Consolidated -= _applicationView_Consolidated;
+
             deferral.Complete();
         }
     }

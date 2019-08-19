@@ -61,6 +61,11 @@ namespace FluentTerminal.App.Views
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
         }
 
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+        }
+
         private async void MainPage_DraggingHappensChanged(object sender, bool e)
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
