@@ -146,6 +146,11 @@ namespace FluentTerminal.App.ViewModels
 
         }
 
+        ~TerminalViewModel()
+        {
+
+        }
+
         public event EventHandler Activated;
         public event EventHandler Closed;
         public event EventHandler<string> FindNextRequested;
@@ -285,9 +290,9 @@ namespace FluentTerminal.App.ViewModels
 
         public ObservableCollection<TabTheme> TabThemes { get; }
 
-        public Terminal Terminal { get; private set; }
+        public Terminal Terminal { get; set; }
 
-        public OverlayViewModel Overlay { get; private set; }
+        public OverlayViewModel Overlay { get; set; }
 
         public TerminalTheme TerminalTheme
         {
@@ -476,6 +481,13 @@ namespace FluentTerminal.App.ViewModels
         private void Terminal_Closed(object sender, EventArgs e)
         {
             ApplicationView.RunOnDispatcherThread(() => Closed?.Invoke(this, EventArgs.Empty));
+
+            Terminal.KeyboardCommandReceived -= Terminal_KeyboardCommandReceived;
+            Terminal.OutputReceived -= Terminal_OutputReceived;
+            Terminal.SizeChanged -= Terminal_SizeChanged;
+            Terminal.TitleChanged -= Terminal_TitleChanged;
+            Terminal.Exited -= Terminal_Exited;
+            Terminal.Closed -= Terminal_Closed;
         }
 
         private async void Terminal_KeyboardCommandReceived(object sender, string e)

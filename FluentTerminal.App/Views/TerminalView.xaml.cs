@@ -27,7 +27,25 @@ namespace FluentTerminal.App.Views
             ViewModel.TerminalView = _terminalView;
         }
 
-        public TerminalViewModel ViewModel { get; }
+        public void StopBindingsTracking()
+        {
+            Bindings.StopTracking();
+            TerminalContainer.Children.Remove((UIElement)_terminalView);
+
+            ViewModel.SearchStarted -= OnSearchStarted;
+            ViewModel.Activated -= OnActivated;
+            ViewModel.ThemeChanged -= OnThemeChanged;
+            ViewModel.OptionsChanged -= OnOptionsChanged;
+            ViewModel.KeyBindingsChanged -= OnKeyBindingsChanged;
+            ViewModel.FindNextRequested -= OnFindNextRequested;
+            ViewModel.FindPreviousRequested -= OnFindPreviousRequested;
+        }
+
+        ~TerminalView()
+        {
+        }
+
+        public TerminalViewModel ViewModel { get; set; }
 
         private async void OnActivated(object sender, EventArgs e)
         {

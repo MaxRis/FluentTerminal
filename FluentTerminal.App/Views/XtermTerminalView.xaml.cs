@@ -1,4 +1,5 @@
 ﻿using Fleck;
+using FluentTerminal.App.Converters;
 using FluentTerminal.App.Services;
 using FluentTerminal.App.Services.Utilities;
 using FluentTerminal.App.Utilities;
@@ -40,6 +41,8 @@ namespace FluentTerminal.App.Views
         private WebView _webView;
         private readonly DebouncedAction<TerminalOptions> _optionsChanged;
         private IWebSocketConnection _socket;
+        private WebSocketServer _webSocketServer;
+        private CancellationTokenSource _mediatorTaskCTSource;
 
         // Members related to resize handling
         private readonly DebouncedAction<TerminalSize> _sizeChanged;
@@ -103,7 +106,12 @@ namespace FluentTerminal.App.Views
             _webView.Navigate(new Uri("ms-appx-web:///Client/index.html"));
         }
 
-        public TerminalViewModel ViewModel { get; private set; }
+        ~XtermTerminalView()
+        {
+
+        }
+
+        public TerminalViewModel ViewModel { get; set; }
 
         public Task ChangeKeyBindings()
         {
@@ -305,21 +313,28 @@ namespace FluentTerminal.App.Views
             };
 
             var webSocketUrl = "ws://127.0.0.1:" + port;
-            var webSocketServer = new WebSocketServer(webSocketUrl);
-            webSocketServer.Start(socket =>
+            _webSocketServer = new WebSocketServer(webSocketUrl);
+            _webSocketServer.Start(socket =>
             {
                 _socket = socket;
-                socket.OnOpen = () =>
-                {
-                    Logger.Instance.Debug("WebSocket open");
-                    _connectedEvent.Set();
-                };
-                socket.OnMessage = message => ViewModel.Terminal.Write(Encoding.UTF8.GetBytes(message));
+                _socket.OnOpen += OnWebSocketOpened;
+                _socket.OnMessage += OnWebSocketMessage;
             });
 
             Logger.Instance.Debug("WebSocketServer started. Calling connectToWebSocket() now.");
 
             await ExecuteScriptAsync($"connectToWebSocket('{webSocketUrl}');").ConfigureAwait(true);
+        }
+
+        private void OnWebSocketMessage(string message)
+        {
+            ViewModel.Terminal.Write(Encoding.UTF8.GetBytes(message));
+        }
+
+        private void OnWebSocketOpened()
+        {
+            Logger.Instance.Debug("WebSocket open");
+            _connectedEvent.Set();
         }
 
         private async Task<TerminalSize> CreateXtermView(TerminalOptions options, TerminalColors theme, IEnumerable<KeyBinding> keyBindings)
@@ -365,19 +380,25 @@ namespace FluentTerminal.App.Views
         {
             _dispatcherJobs = new BlockingCollection<Action>();
             var dispatcher = CoreApplication.GetCurrentView().CoreWindow.Dispatcher;
+            _mediatorTaskCTSource = new CancellationTokenSource();
             Task.Factory.StartNew(async () =>
             {
-                foreach (var job in _dispatcherJobs.GetConsumingEnumerable())
+                try
                 {
-                    try
+                    foreach (var job in _dispatcherJobs.GetConsumingEnumerable())
                     {
-                        await dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => job.Invoke());
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e);
+                        _mediatorTaskCTSource.Token.ThrowIfCancellationRequested();
+                        try
+                        {
+                            await dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => job.Invoke());
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e);
+                        }
                     }
                 }
+                catch (OperationCanceledException) { }
             }, TaskCreationOptions.LongRunning);
         }
 
@@ -385,10 +406,33 @@ namespace FluentTerminal.App.Views
         {
             await ViewModel.ApplicationView.RunOnDispatcherThread(() =>
             {
+                _webView.NavigationCompleted -= _webView_NavigationCompleted;
+                _webView.NavigationStarting -= _webView_NavigationStarting;
                 ViewModel.Terminal.OutputReceived -= Terminal_OutputReceived;
                 ViewModel.Terminal.Closed -= Terminal_Closed;
                 _webView?.Navigate(new Uri("about:blank"));
+                Root.Children.Remove(_webView);
                 _webView = null;
+
+                _socket.OnOpen -= OnWebSocketOpened;
+                _socket.OnMessage -= OnWebSocketMessage;
+                _socket.Close();
+                _webSocketServer.Dispose();
+                _webSocketServer = null;
+                _socket = null;
+
+                _copyMenuItem.Click -= Copy_Click;
+                _pasteMenuItem.Click -= Paste_Click;
+                _mediatorTaskCTSource.Cancel();
+                _dispatcherJobs.Add(() => Logger.Instance.Debug("Terminating XTermTerminalView dispatcher Task."));
+
+                if (Window.Current.Content is Frame frame && frame.Content is Page mainPage)
+                {
+                    if (mainPage.Resources["TerminalViewModelToViewConverter"] is TerminalViewModelToViewConverter converter)
+                    {
+                        converter.RemoveTerminal(ViewModel);
+                    }
+                }
             });
         }
 

@@ -259,6 +259,11 @@ namespace FluentTerminal.App.Services.Implementation
 
         public Task CloseTerminal(byte terminalId)
         {
+            if (_terminalOutputHandlers.ContainsKey(terminalId))
+            {
+                _terminalOutputHandlers.Remove(terminalId);
+            }
+
             var request = new TerminalExitedRequest(terminalId, -1);
 
             Logger.Instance.Debug("Sending TerminalExitedRequest: {@request}", request);
