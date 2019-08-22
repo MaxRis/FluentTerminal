@@ -23,6 +23,11 @@ namespace FluentTerminal.App.Services
             _requireShellProcessStart = !terminalId.HasValue;
         }
 
+        ~Terminal()
+        {
+
+        }
+
         private void OnTerminalExited(object sender, TerminalExitStatus status)
         {
             if (status.TerminalId != Id)
@@ -37,6 +42,8 @@ namespace FluentTerminal.App.Services
             {
                 Closed?.Invoke(this, System.EventArgs.Empty);
             }
+
+            _trayProcessCommunicationService.TerminalExited -= OnTerminalExited;
         }
 
         public event EventHandler<int> Exited;

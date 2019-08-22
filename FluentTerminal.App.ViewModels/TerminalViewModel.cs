@@ -97,10 +97,10 @@ namespace FluentTerminal.App.ViewModels
             IApplicationView applicationView, IDispatcherTimer dispatcherTimer, IClipboardService clipboardService, string terminalState = null)
         {
             SettingsService = settingsService;
-            SettingsService.CurrentThemeChanged += OnCurrentThemeChanged;
-            SettingsService.TerminalOptionsChanged += OnTerminalOptionsChanged;
-            SettingsService.ApplicationSettingsChanged += OnApplicationSettingsChanged;
-            SettingsService.KeyBindingsChanged += OnKeyBindingsChanged;
+            //SettingsService.CurrentThemeChanged += OnCurrentThemeChanged;
+            //SettingsService.TerminalOptionsChanged += OnTerminalOptionsChanged;
+            //SettingsService.ApplicationSettingsChanged += OnApplicationSettingsChanged;
+            //SettingsService.KeyBindingsChanged += OnKeyBindingsChanged;
 
             _terminalOptions = SettingsService.GetTerminalOptions();
 
@@ -115,10 +115,18 @@ namespace FluentTerminal.App.ViewModels
             ShellProfile = shellProfile;
             TerminalTheme = shellProfile.TerminalThemeId == Guid.Empty ? SettingsService.GetCurrentTheme() : SettingsService.GetTheme(shellProfile.TerminalThemeId);
 
-            TabThemes = new ObservableCollection<TabTheme>(SettingsService.GetTabThemes());
+            ObservableCollection < TabTheme > tabThemesCol = new ObservableCollection<TabTheme>();
+            tabThemesCol.Add(new TabTheme
+            {
+                Id = 0,
+                Name = I18N.Translate("TabTheme.Teal"),
+                Color = "#00B7C3"
+            });
+            TabThemes = tabThemesCol;
+
             TabTheme = TabThemes.FirstOrDefault(t => t.Id == ShellProfile.TabThemeId);
 
-            CloseCommand = new RelayCommand(async () => await TryClose().ConfigureAwait(false));
+            CloseCommand = new RelayCommand(CloseTab);
             CloseLeftTabsCommand = new RelayCommand(CloseLeftTabs);
             CloseRightTabsCommand = new RelayCommand(CloseRightTabs);
             CloseOtherTabsCommand = new RelayCommand(CloseOtherTabs);
@@ -143,6 +151,11 @@ namespace FluentTerminal.App.ViewModels
             Terminal.Closed += Terminal_Closed;
 
             Overlay = new OverlayViewModel(dispatcherTimer);
+
+        }
+
+        ~TerminalViewModel()
+        {
 
         }
 
@@ -285,9 +298,18 @@ namespace FluentTerminal.App.ViewModels
 
         public ObservableCollection<TabTheme> TabThemes { get; }
 
-        public Terminal Terminal { get; private set; }
+        public Terminal Terminal { get; set; }
 
-        public OverlayViewModel Overlay { get; private set; }
+        public OverlayViewModel Overlay { get; set; }
+
+        /*public static readonly DependencyProperty DraggingHappensFromAnotherWindowProperty =
+            DependencyProperty.Register(nameof(DraggingHappensFromAnotherWindow), typeof(bool), typeof(MainPage), new PropertyMetadata(null));
+
+        public bool DraggingHappensFromAnotherWindow
+        {
+            get { return (bool)GetValue(DraggingHappensFromAnotherWindowProperty); }
+            set { SetValue(DraggingHappensFromAnotherWindowProperty, value); }
+        }*/
 
         public TerminalTheme TerminalTheme
         {
@@ -385,6 +407,11 @@ namespace FluentTerminal.App.ViewModels
             SearchText = string.Empty;
             ShowSearchPanel = false;
             FocusTerminal();
+        }
+
+        private async void CloseTab()
+        {
+            await TryClose().ConfigureAwait(false);
         }
 
         private void CloseLeftTabs()

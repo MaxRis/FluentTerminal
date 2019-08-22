@@ -13,21 +13,39 @@ namespace FluentTerminal.App.Views
         public TerminalView(TerminalViewModel viewModel)
         {
             ViewModel = viewModel;
-            ViewModel.SearchStarted += OnSearchStarted;
+            /*ViewModel.SearchStarted += OnSearchStarted;
             ViewModel.Activated += OnActivated;
             ViewModel.ThemeChanged += OnThemeChanged;
             ViewModel.OptionsChanged += OnOptionsChanged;
             ViewModel.KeyBindingsChanged += OnKeyBindingsChanged;
             ViewModel.FindNextRequested += OnFindNextRequested;
-            ViewModel.FindPreviousRequested += OnFindPreviousRequested;
+            ViewModel.FindPreviousRequested += OnFindPreviousRequested;*/
             InitializeComponent();
             _terminalView = new XtermTerminalView();
             TerminalContainer.Children.Add((UIElement)_terminalView);
             _terminalView.Initialize(ViewModel);
             ViewModel.TerminalView = _terminalView;
+               //this.Unloaded += TerminalView_Unloaded;
         }
 
-        public TerminalViewModel ViewModel { get; }
+        public void StopBindingsTracking()
+        {
+            this.Bindings.StopTracking();
+        }
+
+        private void TerminalView_Unloaded(object sender, RoutedEventArgs e)
+        {
+            //this.Bindings.StopTracking();
+            //((XtermTerminalView)ViewModel.TerminalView).ViewModel = null;
+            //ViewModel.TerminalView = null;
+            //ViewModel = null;
+        }
+
+        ~TerminalView()
+        {
+        }
+
+        public TerminalViewModel ViewModel { get; set; }
 
         private async void OnActivated(object sender, EventArgs e)
         {

@@ -63,15 +63,15 @@ namespace FluentTerminal.App.Views
             _webView.NavigationStarting += _webView_NavigationStarting;
 
             _copyMenuItem = new MenuFlyoutItem { Text = I18N.Translate("Command.Copy") };
-            _copyMenuItem.Click += Copy_Click;
+            //_copyMenuItem.Click += Copy_Click;
 
             _pasteMenuItem = new MenuFlyoutItem { Text = I18N.Translate("Command.Paste") };
-            _pasteMenuItem.Click += Paste_Click;
+            //_pasteMenuItem.Click += Paste_Click;
 
-            _webView.ContextFlyout = new MenuFlyout
+            /*_webView.ContextFlyout = new MenuFlyout
             {
                 Items = { _copyMenuItem, _pasteMenuItem }
-            };
+            };*/
 
             _optionsChanged = new DebouncedAction<TerminalOptions>(Dispatcher, TimeSpan.FromMilliseconds(800), async options =>
             {
@@ -82,20 +82,13 @@ namespace FluentTerminal.App.Views
             // _sizedChanged is used to debounce terminal resize events to
             // avoid spamming the terminal with them (this can result in
             // buffer corruption).
-            _sizeChanged = new DebouncedAction<TerminalSize>(Dispatcher, TimeSpan.FromMilliseconds(1000), async size => {
-                await ViewModel.Terminal.SetSize(size).ConfigureAwait(true);
-
-                // Allow output to the terminal soon (hopefully, once the resize event has been processed).
-                _unblockOutput.Invoke(true);
-            });
+            _sizeChanged = new DebouncedAction<TerminalSize>(Dispatcher, TimeSpan.FromMilliseconds(1000), OnTerminalResize);
 
             _outputBlockedBuffer = new MemoryStream();
             _outputBlocked = new ManualResetEventSlim();
 
             // _unblockOutput allows output to the terminal again, 500ms after it invoked.
-            _unblockOutput = new DebouncedAction<bool>(Dispatcher, TimeSpan.FromMilliseconds(500), x => {
-                _outputBlocked.Reset();
-            });
+            _unblockOutput = new DebouncedAction<bool>(Dispatcher, TimeSpan.FromMilliseconds(500), UnblockTerminal);
 
 
             _navigationCompleted = new SemaphoreSlim(0, 1);
@@ -104,7 +97,25 @@ namespace FluentTerminal.App.Views
             _webView.Navigate(new Uri("ms-appx-web:///Client/index.html"));
         }
 
-        public TerminalViewModel ViewModel { get; private set; }
+        private async void OnTerminalResize(TerminalSize size)
+        {
+            await ViewModel.Terminal.SetSize(size).ConfigureAwait(true);
+
+            // Allow output to the terminal soon (hopefully, once the resize event has been processed).
+            _unblockOutput.Invoke(true);
+        }
+
+        private async void UnblockTerminal(bool value)
+        {
+            _outputBlocked.Reset();
+        }
+
+        ~XtermTerminalView()
+        {
+
+        }
+
+        public TerminalViewModel ViewModel { get; set; }
 
         public Task ChangeKeyBindings()
         {
@@ -155,7 +166,7 @@ namespace FluentTerminal.App.Views
         {
             ViewModel = viewModel;
             ViewModel.Terminal.OutputReceived += Terminal_OutputReceived;
-            ViewModel.Terminal.RegisterSelectedTextCallback(() => ExecuteScriptAsync("term.getSelection()"));
+            //ViewModel.Terminal.RegisterSelectedTextCallback(() => ExecuteScriptAsync("term.getSelection()"));
             ViewModel.Terminal.Closed += Terminal_Closed;
 
             var options = ViewModel.SettingsService.GetTerminalOptions();
@@ -200,17 +211,17 @@ namespace FluentTerminal.App.Views
 
             if (Enum.TryParse(command, true, out Command commandValue))
             {
-                _dispatcherJobs.Add(() => ViewModel.Terminal.ProcessKeyboardCommand(commandValue.ToString()));
+                //_dispatcherJobs.Add(() => ViewModel.Terminal.ProcessKeyboardCommand(commandValue.ToString()));
             }
             else if (Guid.TryParse(command, out Guid shellProfileId))
             {
-                _dispatcherJobs.Add(() => ViewModel.Terminal.ProcessKeyboardCommand(shellProfileId.ToString()));
+                //_dispatcherJobs.Add(() => ViewModel.Terminal.ProcessKeyboardCommand(shellProfileId.ToString()));
             }
         }
 
         void IxtermEventListener.OnMouseClick(MouseButton mouseButton, int x, int y, bool hasSelection)
         {
-            _dispatcherJobs.Add(() =>
+            /*_dispatcherJobs.Add(() =>
             {
                 if (mouseButton == MouseButton.Middle)
                 {
@@ -234,18 +245,18 @@ namespace FluentTerminal.App.Views
                         ((IxtermEventListener)this).OnKeyboardCommand(nameof(Command.Paste));
                     }
                 }
-            });
+            });*/
         }
 
         void IxtermEventListener.OnSelectionChanged(string selection)
         {
             if (!string.IsNullOrEmpty(selection) && ViewModel.ApplicationSettings.CopyOnSelect && !ViewModel.ShowSearchPanel)
             {
-                _dispatcherJobs.Add(async () =>
+                /*_dispatcherJobs.Add(async () =>
                 {
                     ViewModel.CopyText(selection);
                     await ExecuteScriptAsync("term.clearSelection()");
-                });
+                });*/
             }
         }
 
@@ -255,14 +266,14 @@ namespace FluentTerminal.App.Views
             {
                 // Prevent output from being sent during the terminal while
                 // resize events are being processed (to avoid buffer corruption).
-                _outputBlocked.Set(); 
-                _dispatcherJobs.Add(() => _sizeChanged.Invoke(new TerminalSize { Columns = columns, Rows = rows }));
+                //_outputBlocked.Set(); 
+                //_dispatcherJobs.Add(() => _sizeChanged.Invoke(new TerminalSize { Columns = columns, Rows = rows }));
             }
         }
 
         void IxtermEventListener.OnTitleChanged(string title)
         {
-            _dispatcherJobs.Add(() => ViewModel.Terminal.SetTitle(title));
+            //_dispatcherJobs.Add(() => ViewModel.Terminal.SetTitle(title));
         }
 
         private void _webView_NavigationCompleted(WebView sender, WebViewNavigationCompletedEventArgs args)
@@ -284,7 +295,7 @@ namespace FluentTerminal.App.Views
 
         private async Task CreateWebSocketServer(int port)
         {
-            FleckLog.LogAction = (level, message, exception) =>
+            /*FleckLog.LogAction = (level, message, exception) =>
             {
                 // todo: send debug to verbose
                 switch (level)
@@ -303,24 +314,33 @@ namespace FluentTerminal.App.Views
                 {
                     Logger.Instance.Error(exception, "Fleck Exception");
                 }
-            };
+            };*/
 
             var webSocketUrl = "ws://127.0.0.1:" + port;
             var webSocketServer = new WebSocketServer(webSocketUrl);
-            webSocketServer.Start(socket =>
-            {
-                _socket = socket;
-                socket.OnOpen = () =>
-                {
-                    Logger.Instance.Debug("WebSocket open");
-                    _connectedEvent.Set();
-                };
-                socket.OnMessage = message => ViewModel.Terminal.Write(Encoding.UTF8.GetBytes(message));
-            });
+            webSocketServer.Start(OnWebSocketServerStart);
 
             Logger.Instance.Debug("WebSocketServer started. Calling connectToWebSocket() now.");
 
             await ExecuteScriptAsync($"connectToWebSocket('{webSocketUrl}');").ConfigureAwait(true);
+        }
+
+        private void OnWebSocketServerStart(IWebSocketConnection socket)
+        {
+            _socket = socket;
+            _socket.OnOpen += OnWebSocketOpened;
+            _socket.OnMessage += OnWebSocketMessage;
+        }
+
+        private void OnWebSocketMessage(string message)
+        {
+            ViewModel.Terminal.Write(Encoding.UTF8.GetBytes(message));
+        }
+
+        private void OnWebSocketOpened()
+        {
+            Logger.Instance.Debug("WebSocket open");
+            _connectedEvent.Set();
         }
 
         private async Task<TerminalSize> CreateXtermView(TerminalOptions options, TerminalColors theme, IEnumerable<KeyBinding> keyBindings)
@@ -365,7 +385,7 @@ namespace FluentTerminal.App.Views
         private void StartMediatorTask()
         {
             _dispatcherJobs = new BlockingCollection<Action>();
-            var dispatcher = CoreApplication.GetCurrentView().CoreWindow.Dispatcher;
+            /*var dispatcher = CoreApplication.GetCurrentView().CoreWindow.Dispatcher;
             Task.Factory.StartNew(async () =>
             {
                 foreach (var job in _dispatcherJobs.GetConsumingEnumerable())
@@ -379,26 +399,35 @@ namespace FluentTerminal.App.Views
                         Debug.WriteLine(e);
                     }
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, TaskCreationOptions.LongRunning);*/
         }
 
         private async void Terminal_Closed(object sender, EventArgs e)
         {
-            await ViewModel.ApplicationView.RunOnDispatcherThread(() =>
-            {
-                ViewModel.Terminal.OutputReceived -= Terminal_OutputReceived;
-                ViewModel.Terminal.Closed -= Terminal_Closed;
-                _webView?.Navigate(new Uri("about:blank"));
-                _webView = null;
+            await ViewModel.ApplicationView.RunOnDispatcherThread(OnTerminalClosed);
+        }
 
-                if (Window.Current.Content is Frame frame && frame.Content is Page mainPage)
+        private void OnTerminalClosed()
+        {
+            _webView.NavigationCompleted -= _webView_NavigationCompleted;
+            _webView.NavigationStarting -= _webView_NavigationStarting;
+            ViewModel.Terminal.OutputReceived -= Terminal_OutputReceived;
+            ViewModel.Terminal.Closed -= Terminal_Closed;
+            _webView?.Navigate(new Uri("about:blank"));
+            Root.Children.Remove(_webView);
+            _webView = null;
+
+            _socket.OnOpen -= OnWebSocketOpened;
+            _socket.OnMessage -= OnWebSocketMessage;
+            _socket = null;
+
+            if (Window.Current.Content is Frame frame && frame.Content is Page mainPage)
+            {
+                if (mainPage.Resources["TerminalViewModelToViewConverter"] is TerminalViewModelToViewConverter converter)
                 {
-                    if (mainPage.Resources["TerminalViewModelToViewConverter"] is TerminalViewModelToViewConverter converter)
-                    {
-                        converter.RemoveTerminal(ViewModel);
-                    }
+                    converter.RemoveTerminal(ViewModel);
                 }
-            });
+            }
         }
 
         private void Terminal_OutputReceived(object sender, byte[] e)

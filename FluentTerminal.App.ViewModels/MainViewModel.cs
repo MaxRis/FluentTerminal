@@ -50,13 +50,13 @@ namespace FluentTerminal.App.ViewModels
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.NewSshTab), async () => await AddSshTabAsync());
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.NewCustomCommandTab), async () => await AddCustomCommandTabAsync());
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.ConfigurableNewTab), async () => await AddConfigurableTerminal());
-            _keyboardCommandService.RegisterCommandHandler(nameof(Command.ChangeTabTitle), async () => await SelectedTerminal.EditTitle());
+            //_keyboardCommandService.RegisterCommandHandler(nameof(Command.ChangeTabTitle), async () => await SelectedTerminal.EditTitle());
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.CloseTab), CloseCurrentTab);
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.SavedSshNewTab), async () => await AddSavedSshTerminalAsync());
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.SavedSshNewWindow), () => NewWindow(NewWindowAction.ShowSshProfileSelection));
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.NewSshWindow), () => NewWindow(NewWindowAction.ShowSshInfoDialog));
             _keyboardCommandService.RegisterCommandHandler(nameof(Command.NewCustomCommandWindow), () => NewWindow(NewWindowAction.ShowCustomCommandDialog));
-            _keyboardCommandService.RegisterCommandHandler(nameof(Command.DuplicateTab), async () => await AddTerminalAsync(SelectedTerminal.ShellProfile.Clone()));
+            //_keyboardCommandService.RegisterCommandHandler(nameof(Command.DuplicateTab), async () => await AddTerminalAsync(SelectedTerminal.ShellProfile.Clone()));
 
             // Add all of the commands for switching to a tab of a given ID, if there's one open there
             for (int i = 0; i < 9; i++)
@@ -549,6 +549,7 @@ namespace FluentTerminal.App.ViewModels
                 terminal.CloseRightTabsRequested -= Terminal_CloseRightTabsRequested;
                 terminal.CloseOtherTabsRequested -= Terminal_CloseOtherTabsRequested;
                 terminal.DuplicateTabRequested -= Terminal_DuplicateTabRequested;
+                
                 //await terminal.Close();
                 Terminals.Remove(terminal);
 

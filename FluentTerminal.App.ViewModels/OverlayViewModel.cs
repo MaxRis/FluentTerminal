@@ -14,7 +14,12 @@ namespace FluentTerminal.App.ViewModels
         {
             _overlayTimer = dispatcherTimer;
             _overlayTimer.Interval = new TimeSpan(0, 0, 2);
-            _overlayTimer.Tick += OnResizeOverlayTimerFinished;
+            //_overlayTimer.Tick += OnResizeOverlayTimerFinished;
+        }
+
+        ~OverlayViewModel()
+        {
+
         }
 
         public bool ShowOverlay
