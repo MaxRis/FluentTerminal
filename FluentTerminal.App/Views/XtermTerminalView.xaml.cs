@@ -41,6 +41,7 @@ namespace FluentTerminal.App.Views
         private WebView _webView;
         private readonly DebouncedAction<TerminalOptions> _optionsChanged;
         private IWebSocketConnection _socket;
+        private WebSocketServer _webSocketServer;
 
         // Members related to resize handling
         private readonly DebouncedAction<TerminalSize> _sizeChanged;
@@ -317,8 +318,8 @@ namespace FluentTerminal.App.Views
             };*/
 
             var webSocketUrl = "ws://127.0.0.1:" + port;
-            var webSocketServer = new WebSocketServer(webSocketUrl);
-            webSocketServer.Start(OnWebSocketServerStart);
+            _webSocketServer = new WebSocketServer(webSocketUrl);
+            _webSocketServer.Start(OnWebSocketServerStart);
 
             Logger.Instance.Debug("WebSocketServer started. Calling connectToWebSocket() now.");
 
@@ -419,6 +420,9 @@ namespace FluentTerminal.App.Views
 
             _socket.OnOpen -= OnWebSocketOpened;
             _socket.OnMessage -= OnWebSocketMessage;
+            _socket.Close();
+            _webSocketServer.Dispose();
+            _webSocketServer = null;
             _socket = null;
 
             if (Window.Current.Content is Frame frame && frame.Content is Page mainPage)

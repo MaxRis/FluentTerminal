@@ -31,6 +31,7 @@ namespace FluentTerminal.App.Views
         public void StopBindingsTracking()
         {
             this.Bindings.StopTracking();
+            TerminalContainer.Children.Remove((UIElement)_terminalView);
         }
 
         private void TerminalView_Unloaded(object sender, RoutedEventArgs e)
