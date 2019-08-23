@@ -417,6 +417,7 @@ namespace FluentTerminal.App.Views
                 _socket.OnOpen -= OnWebSocketOpened;
                 _socket.OnMessage -= OnWebSocketMessage;
                 _socket.Close();
+                FleckLog.LogAction = null;
                 _webSocketServer.Dispose();
                 _webSocketServer = null;
                 _socket = null;
