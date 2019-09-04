@@ -107,6 +107,20 @@ namespace FluentTerminal.App.ViewModels
 
         private void OnClosed(object sender, EventArgs e)
         {
+            _settingsService.CurrentThemeChanged -= OnCurrentThemeChanged;
+            _settingsService.ApplicationSettingsChanged -= OnApplicationSettingsChanged;
+            _settingsService.TerminalOptionsChanged -= OnTerminalOptionsChanged;
+            _settingsService.ShellProfileAdded -= OnShellProfileAdded;
+            _settingsService.ShellProfileDeleted -= OnShellProfileDeleted;
+            _settingsService.SshProfileAdded -= OnSshProfileAdded;
+            _settingsService.SshProfileDeleted -= OnSshProfileDeleted;
+
+            ApplicationView.CloseRequested -= OnCloseRequest;
+            ApplicationView.Closed -= OnClosed;
+            Terminals.CollectionChanged -= OnTerminalsCollectionChanged;
+
+            _keyboardCommandService.ClearCommandHandlers();
+
             Closed?.Invoke(this, e);
         }
 

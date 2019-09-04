@@ -78,14 +78,34 @@ namespace FluentTerminal.App.Views
             if (e.Parameter is MainViewModel viewModel)
             {
                 ViewModel = viewModel;
+                ViewModel.Closed += ViewModel_Closed;
             }
+            base.OnNavigatedTo(e);
+        }
+
+        private void ViewModel_Closed(object sender, EventArgs e)
+        {
+            Bindings.StopTracking();
+
+            Loaded -= OnLoaded;
+            Unloaded -= OnUnloaded;
+            DraggingHappensChanged -= MainPage_DraggingHappensChanged;
+            Window.Current.Activated -= OnWindowActivated;
+
+            ViewModel.Closed -= ViewModel_Closed;
+            ViewModel = null;
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
         }
 
         private void OnWindowActivated(object sender, WindowActivatedEventArgs e)
         {
             if (e.WindowActivationState != CoreWindowActivationState.Deactivated && TerminalContainer.Content is TerminalView terminal)
             {
-                terminal.ViewModel.FocusTerminal();
+                terminal.ViewModel?.FocusTerminal();
                 ViewModel.FocusWindow();
             }
         }
