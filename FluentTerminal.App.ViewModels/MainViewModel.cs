@@ -105,6 +105,11 @@ namespace FluentTerminal.App.ViewModels
             Terminals.CollectionChanged += OnTerminalsCollectionChanged;
         }
 
+        ~MainViewModel()
+        {
+
+        }
+
         private void OnClosed(object sender, EventArgs e)
         {
             _settingsService.CurrentThemeChanged -= OnCurrentThemeChanged;
@@ -120,6 +125,14 @@ namespace FluentTerminal.App.ViewModels
             Terminals.CollectionChanged -= OnTerminalsCollectionChanged;
 
             _keyboardCommandService.ClearCommandHandlers();
+
+            _applicationSettings = null;
+
+            AddLocalShellCommand = null;
+            AddSshShellCommand = null;
+            AddQuickShellCommand = null;
+            ShowAboutCommand = null;
+            ShowSettingsCommand = null;
 
             Closed?.Invoke(this, e);
         }
@@ -171,9 +184,9 @@ namespace FluentTerminal.App.ViewModels
             ActivatedMv?.Invoke(this, EventArgs.Empty);
         }
 
-        public RelayCommand AddLocalShellCommand { get; }
-        public RelayCommand AddSshShellCommand { get; }
-        public RelayCommand AddQuickShellCommand { get; }
+        public RelayCommand AddLocalShellCommand { get; private set; }
+        public RelayCommand AddSshShellCommand { get; private set; }
+        public RelayCommand AddQuickShellCommand { get; private set; }
 
         public string WindowTitle
         {
@@ -237,9 +250,9 @@ namespace FluentTerminal.App.ViewModels
             }
         }
 
-        public RelayCommand ShowAboutCommand { get; }
+        public RelayCommand ShowAboutCommand { get; private set; }
 
-        public RelayCommand ShowSettingsCommand { get; }
+        public RelayCommand ShowSettingsCommand { get; private set; }
 
         public TabsPosition TabsPosition
         {

@@ -25,13 +25,37 @@ namespace FluentTerminal.App.Views
         public static readonly DependencyProperty SelectedItemProperty =
             DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(TabBar), new PropertyMetadata(null));
 
+        private long _scrollableWidthChangedToken;
+
         public TabBar()
         {
             InitializeComponent();
-            ScrollViewer.RegisterPropertyChangedCallback(ScrollViewer.ScrollableWidthProperty, OnScrollableWidthChanged);
+            _scrollableWidthChangedToken = ScrollViewer.RegisterPropertyChangedCallback(ScrollViewer.ScrollableWidthProperty, OnScrollableWidthChanged);
             ListView.SelectionChanged += OnListViewSelectionChanged;
             ScrollLeftButton.Tapped += OnScrollLeftButtonTapped;
             ScrollRightButton.Tapped += OnScrollRightButtonTapped;
+        }
+
+        ~TabBar()
+        {
+
+        }
+
+        public void DisposalPrepare()
+        {
+            ListView.ItemsSource = null;
+            ListView.SelectedItem = null;
+
+            ItemsSource = null;
+            AddCommand = null;
+            SelectedItem = null;
+
+            Bindings.StopTracking();
+
+            ScrollViewer.UnregisterPropertyChangedCallback(ScrollViewer.ScrollableWidthProperty, _scrollableWidthChangedToken);
+            ListView.SelectionChanged -= OnListViewSelectionChanged;
+            ScrollLeftButton.Tapped -= OnScrollLeftButtonTapped;
+            ScrollRightButton.Tapped -= OnScrollRightButtonTapped;
         }
 
         public RelayCommand AddCommand

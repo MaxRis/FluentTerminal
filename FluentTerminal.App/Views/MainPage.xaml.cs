@@ -19,7 +19,7 @@ namespace FluentTerminal.App.Views
 {
     public sealed partial class MainPage : Page, INotifyPropertyChanged
     {
-        private readonly CoreApplicationViewTitleBar coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
+        private CoreApplicationViewTitleBar coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -44,21 +44,29 @@ namespace FluentTerminal.App.Views
 
         public MainViewModel ViewModel { get; private set; }
 
+        private long _propertyChangedCallbackToken;
+
         public MainPage()
         {
             InitializeComponent();
             Root.DataContext = this;
             Window.Current.SetTitleBar(TitleBar);
             Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
             DraggingHappensChanged += MainPage_DraggingHappensChanged;
             Window.Current.Activated += OnWindowActivated;
-            RegisterPropertyChangedCallback(RequestedThemeProperty, (s, e) =>
-            {
-                ContrastHelper.SetTitleBarButtonsForTheme(RequestedTheme);
-            });
+            _propertyChangedCallbackToken = RegisterPropertyChangedCallback(RequestedThemeProperty, OnRequestedThemeProperty);
 
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
+        }
+
+        private void OnRequestedThemeProperty(DependencyObject sender, DependencyProperty dp)
+        {
+            ContrastHelper.SetTitleBarButtonsForTheme(RequestedTheme);
+        }
+
+        ~MainPage()
+        {
+
         }
 
         private async void MainPage_DraggingHappensChanged(object sender, bool e)
@@ -85,15 +93,34 @@ namespace FluentTerminal.App.Views
 
         private void ViewModel_Closed(object sender, EventArgs e)
         {
-            Bindings.StopTracking();
+            TopTabBar.TabDraggedOutside -= TabBar_TabDraggedOutside;
+            TopTabBar.TabWindowChanged -= TabView_Drop;
+            TopTabBar.TabDraggingCompleted -= TabBar_TabDraggingCompleted;
+            TopTabBar.TabDraggingChanged -= TabBar_TabDraggingChanged;
+
+            BottomTabBar.TabDraggedOutside -= TabBar_TabDraggedOutside;
+            BottomTabBar.TabWindowChanged -= TabView_Drop;
+            BottomTabBar.TabDraggingCompleted -= TabBar_TabDraggingCompleted;
+            BottomTabBar.TabDraggingChanged -= TabBar_TabDraggingChanged;
+
+            TopTabBar.DisposalPrepare();
+            BottomTabBar.DisposalPrepare();
+
+            UnregisterPropertyChangedCallback(RequestedThemeProperty, _propertyChangedCallbackToken);
 
             Loaded -= OnLoaded;
-            Unloaded -= OnUnloaded;
             DraggingHappensChanged -= MainPage_DraggingHappensChanged;
             Window.Current.Activated -= OnWindowActivated;
 
+            coreTitleBar.LayoutMetricsChanged -= OnLayoutMetricsChanged;
+
             ViewModel.Closed -= ViewModel_Closed;
             ViewModel = null;
+            Root.DataContext = null;
+            Window.Current.SetTitleBar(null);
+
+            coreTitleBar = null;
+            Bindings.StopTracking();
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -108,11 +135,6 @@ namespace FluentTerminal.App.Views
                 terminal.ViewModel?.FocusTerminal();
                 ViewModel.FocusWindow();
             }
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            coreTitleBar.LayoutMetricsChanged -= OnLayoutMetricsChanged;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

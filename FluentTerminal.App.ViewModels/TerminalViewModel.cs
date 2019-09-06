@@ -158,6 +158,11 @@ namespace FluentTerminal.App.ViewModels
             Overlay = null;
         }
 
+        ~TerminalViewModel()
+        {
+
+        }
+
         public event EventHandler Activated;
         public event EventHandler Closed;
         public event EventHandler<string> FindNextRequested;
