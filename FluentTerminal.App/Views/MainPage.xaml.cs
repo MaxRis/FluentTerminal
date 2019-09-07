@@ -121,6 +121,7 @@ namespace FluentTerminal.App.Views
 
             coreTitleBar = null;
             Bindings.StopTracking();
+            TerminalContainer.Content = null;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
