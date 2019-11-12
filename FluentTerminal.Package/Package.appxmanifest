@@ -77,5 +77,6 @@
     <Capability Name="internetClient" />
     <rescap:Capability Name="confirmAppClose"/>
     <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="extendedExecutionUnconstrained"/>
   </Capabilities>
 </Package>

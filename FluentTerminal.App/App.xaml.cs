@@ -38,6 +38,8 @@ using FluentTerminal.App.Services.Utilities;
 using FluentTerminal.App.ViewModels.Profiles;
 using FluentTerminal.Models.Messages;
 using GalaSoft.MvvmLight.Messaging;
+using Windows.ApplicationModel.ExtendedExecution.Foreground;
+using Windows.ApplicationModel.ExtendedExecution;
 
 namespace FluentTerminal.App
 {
@@ -515,7 +517,10 @@ namespace FluentTerminal.App
             Logger.Instance.Initialize(logFile, config);
         }
 
-        protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
+        // https://docs.microsoft.com/en-us/windows/uwp/launch-resume/run-in-the-background-indefinetly#run-while-minimized
+        private ExtendedExecutionForegroundSession _sessionRef;
+
+        protected override async void OnBackgroundActivated(BackgroundActivatedEventArgs args)
         {
             base.OnBackgroundActivated(args);
 
@@ -523,6 +528,22 @@ namespace FluentTerminal.App
             {
                 if (details.CallerPackageFamilyName == Package.Current.Id.FamilyName)
                 {
+                    _sessionRef = new ExtendedExecutionForegroundSession();
+                    _sessionRef.Reason = ExtendedExecutionForegroundReason.Unconstrained;
+                    ExtendedExecutionForegroundResult result = await _sessionRef.RequestExtensionAsync();
+                    switch (result)
+                    {
+                        case ExtendedExecutionForegroundResult.Allowed:
+                            break;
+
+                        default:
+                        case ExtendedExecutionForegroundResult.Denied:
+                            new MessageDialog(
+                                "Unexpected thing happened: Unconstrained foreground application running is denied. Please let devs know that you have seen this message",
+                            "Alert").ShowAsync();
+                            break;
+                    }
+
                     _appServiceDeferral = args.TaskInstance.GetDeferral();
                     args.TaskInstance.Canceled += OnTaskCanceled;
 
